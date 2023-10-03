@@ -1,1 +1,1 @@
-test substring algorithm common
+A quick brown dog jumps over a lazy fox.
