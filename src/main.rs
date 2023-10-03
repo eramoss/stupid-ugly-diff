@@ -1,9 +1,44 @@
 use std::env;
 
-mod lcs {
+mod diff {
     use nalgebra::{self, Dyn, Matrix, VecStorage};
     use std::cmp::max;
     type UsizeMatrix = Matrix<usize, Dyn, Dyn, VecStorage<usize, Dyn, Dyn>>;
+
+    pub fn text_diff(a: &str, b: &str) -> String {
+        let lcs_result = lcs(a, b);
+        let mut diff = String::new();
+        let mut a_idx = 0;
+        let mut b_idx = 0;
+
+        for change in lcs_result.chars() {
+            while a.chars().nth(a_idx) != Some(change) {
+                diff.push_str(&format!("\x1b[31m{}\x1b[0m", a.chars().nth(a_idx).unwrap()));
+                a_idx += 1;
+            }
+
+            while b.chars().nth(b_idx) != Some(change) {
+                diff.push_str(&format!("\x1b[32m{}\x1b[0m", b.chars().nth(b_idx).unwrap()));
+                b_idx += 1;
+            }
+
+            diff.push(change);
+            a_idx += 1;
+            b_idx += 1;
+        }
+
+        while let Some(char_a) = a.chars().nth(a_idx) {
+            diff.push_str(&format!("\x1b[31m{}\x1b[0m", char_a));
+            a_idx += 1;
+        }
+
+        while let Some(char_b) = b.chars().nth(b_idx) {
+            diff.push_str(&format!("\x1b[32m{}\x1b[0m", char_b));
+            b_idx += 1;
+        }
+
+        diff
+    }
 
     pub fn lcs(a: &str, b: &str) -> String {
         let lcs_matrix: UsizeMatrix = lcs_matrix(a, b);
@@ -99,6 +134,6 @@ mod cli {
 
 fn main() {
     let (a, b) = cli::files_from_args(env::args().collect()).unwrap();
-    let common_substring = lcs::lcs(&a, &b);
-    println!("{}", common_substring);
+    let diff = diff::text_diff(&a, &b);
+    println!("{}", diff);
 }

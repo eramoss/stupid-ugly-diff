@@ -1,1 +1,2 @@
-A quick brown dog jumps over a lazy fox.
+A quick brown dog over (change inside) a lazy fox.
+other text appended
