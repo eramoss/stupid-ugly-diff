@@ -1,29 +1,23 @@
-use std::{fs::File, io};
-
-pub fn diff(
-    lines1: io::Lines<io::BufReader<File>>,
-    lines2: io::Lines<io::BufReader<File>>,
-) -> String {
+pub fn text_diff(mut lines1: Vec<String>, mut lines2: Vec<String>) -> String {
     let mut removed = String::from("\x1b[31m");
     let mut added = String::from("\x1b[32m");
 
-    for (line1, line2) in lines1.zip(lines2) {
+    if lines1.len() > lines2.len() {
+        lines2.resize(lines1.len(), "".to_string());
+    } else {
+        lines1.resize(lines2.len(), "".to_string());
+    }
+
+    for (line1, line2) in lines1.into_iter().zip(lines2.into_iter()) {
         match (line1, line2) {
-            (Ok(line1), Ok(line2)) if line1 != line2 => {
-                added.push_str(&format!("> {}\n", line2));
-                removed.push_str(&format!("< {}\n", line1));
+            (line1, line2) if line1 != line2 => {
+                added.push_str(&format!(">\t {}\n", line2));
+                removed.push_str(&format!("<\t {}\n", line1));
             }
-            (Ok(line1), Err(_)) => {
-                removed.push_str(&format!("> {}\n", line1));
-            }
-            (Err(_), Ok(line2)) => {
-                added.push_str(&format!("> {}\n", line2));
-            }
-            (Err(_), Err(_)) => break,
-            (Ok(_), Ok(_)) => continue,
+            (_, _) => continue,
         }
     }
     removed.push_str("\n\x1b[0m --- \n");
-    removed.push_str(added.as_str());
-    removed
+    let diff = removed + added.as_str();
+    diff
 }

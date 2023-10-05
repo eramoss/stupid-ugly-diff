@@ -31,12 +31,7 @@ mod cli {
         Ok((a, b))
     }
 
-    pub fn files_lines_from_args(
-        args: Vec<String>,
-    ) -> (
-        io::Lines<io::BufReader<File>>,
-        io::Lines<io::BufReader<File>>,
-    ) {
+    pub fn files_lines_from_args(args: Vec<String>) -> (Vec<String>, Vec<String>) {
         if args.len() != 3 {
             eprintln!("Usage: {} <file1> <file2>", args[0]);
             process::exit(1);
@@ -57,9 +52,11 @@ mod cli {
         }
     }
 
-    fn read_lines(filename: &str) -> io::Result<io::Lines<io::BufReader<File>>> {
-        let file = File::open(filename)?;
-        Ok(io::BufReader::with_capacity(1024, file).lines())
+    fn read_lines(file_path: &str) -> io::Result<Vec<String>> {
+        let file = File::open(file_path)?;
+        let lines: Vec<String> = io::BufReader::new(file).lines().collect::<Result<_, _>>()?;
+
+        Ok(lines)
     }
 }
 
@@ -92,7 +89,7 @@ fn main() {
                 file1.to_string(),
                 file2.to_string(),
             ]);
-            let diff = unix_like::diff(a, b);
+            let diff = unix_like::text_diff(a, b);
             println!("{}", diff);
         }
         _ => {
